@@ -1,5 +1,23 @@
-use bevy::prelude::*;
-use bevy::render::pass::ClearColor;
+use bevy::{core::FixedTimestep, prelude::*, render::pass::ClearColor};
+
+fn main() {
+    App::build()
+        // Clear Color is the background color
+        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
+        .insert_resource(WindowDescriptor {
+            title: "Bevy Pong".to_string(),
+            width: 1000.0,
+            height: 800.0,
+            resizable: false,
+            vsync: true,
+            ..Default::default()
+        })
+        .add_plugins(DefaultPlugins)
+        .add_startup_system(startup_system.system())
+        .add_system_set(SystemSet::new().with_run_criteria(FixedTimestep::step(TIME_STEP as f64)))
+        .add_system(render_system.system())
+        .run();
+}
 
 /*
  * Entities
@@ -32,15 +50,6 @@ struct Vector {
 
 struct Ball;
 
-const LEFT_PLAYER_ORIGIN: Position = Position { x: -25.0, y: 0.0 };
-const RIGHT_PLAYER_ORIGIN: Position = Position { x: 25.0, y: 0.0 };
-const BALL_ORIGIN: Position = Position { x: 0.0, y: 0.0 };
-const PADDLE_SIZE: [f32; 2] = [6.0, 36.0];
-const DASH_WIDTH: f32 = 1.0;
-const DASH_HEIGHT: f32 = 8.0;
-const DASH_SIZE: [f32; 2] = [DASH_WIDTH, DASH_HEIGHT];
-const DASH_PADDING: f32 = 20.0;
-
 // The origin (0,0) of bevy's coordinate system is in the center of the screen
 fn startup_system(
     mut commands: Commands,
@@ -48,8 +57,6 @@ fn startup_system(
     window: Res<WindowDescriptor>,
 ) {
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
-    commands.spawn_bundle(UiCameraBundle::default());
-    // Left Player
     commands
         .spawn_bundle(SpriteBundle {
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
@@ -110,21 +117,12 @@ fn render_system(mut query: Query<(&Position, &mut Transform)>, window: Res<Wind
     }
 }
 
-// 1. query for paddles, get components, mutate position
-fn main() {
-    App::build()
-        // Clear Color is the background color
-        .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
-        .insert_resource(WindowDescriptor {
-            title: "Bevy Pong".to_string(),
-            width: 1000.0,
-            height: 800.0,
-            resizable: false,
-            vsync: true,
-            ..Default::default()
-        })
-        .add_plugins(DefaultPlugins)
-        .add_startup_system(startup_system.system())
-        .add_system(render_system.system())
-        .run();
-}
+const TIME_STEP: f32 = 1.0 / 60.0;
+const LEFT_PLAYER_ORIGIN: Position = Position { x: -25.0, y: 0.0 };
+const RIGHT_PLAYER_ORIGIN: Position = Position { x: 25.0, y: 0.0 };
+const BALL_ORIGIN: Position = Position { x: 0.0, y: 0.0 };
+const PADDLE_SIZE: [f32; 2] = [6.0, 36.0];
+const DASH_WIDTH: f32 = 1.0;
+const DASH_HEIGHT: f32 = 8.0;
+const DASH_SIZE: [f32; 2] = [DASH_WIDTH, DASH_HEIGHT];
+const DASH_PADDING: f32 = 20.0;
