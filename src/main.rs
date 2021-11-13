@@ -1,3 +1,6 @@
+pub mod systems;
+
+use crate::systems::{collision::collision_system, velocity::velocity_system};
 use bevy::{core::FixedTimestep, prelude::*, render::pass::ClearColor};
 
 fn main() {
@@ -17,6 +20,8 @@ fn main() {
         .add_system_set(SystemSet::new().with_run_criteria(FixedTimestep::step(TIME_STEP as f64)))
         .add_system(keyboard_input_system.system())
         .add_system(render_system.system())
+        .add_system(collision_system.system())
+        .add_system(velocity_system.system())
         .run();
 }
 
@@ -25,23 +30,22 @@ fn main() {
  */
 
 // Player Type
-struct LeftPlayer;
-struct RightPlayer;
+enum PlayerType {
+    LeftPlayer,
+    RightPlayer,
+}
+pub struct Player {
+    player_type: PlayerType,
+}
 
 // Positions are percentage based
-struct Position {
+pub struct Position {
     x: f32,
     y: f32,
 }
 
-// Vectors components are described as scalars between [0,1]
-// with two decimal places of precision
-struct Vector {
-    x: f32,
-    y: f32,
-}
-
-struct Ball;
+pub struct Velocity(Vec2);
+pub struct Ball;
 
 const TIME_STEP: f32 = 1.0 / 60.0;
 const LEFT_PLAYER_ORIGIN: Position = Position { x: -42.5, y: 0.0 };
@@ -71,7 +75,9 @@ fn startup_system(
             sprite: Sprite::new(Vec2::from(PADDLE_SIZE)),
             ..Default::default()
         })
-        .insert(LeftPlayer)
+        .insert(Player {
+            player_type: PlayerType::LeftPlayer,
+        })
         .insert(LEFT_PLAYER_ORIGIN);
 
     // Right Player
@@ -81,7 +87,9 @@ fn startup_system(
             sprite: Sprite::new(Vec2::from(PADDLE_SIZE)),
             ..Default::default()
         })
-        .insert(RightPlayer)
+        .insert(Player {
+            player_type: PlayerType::RightPlayer,
+        })
         .insert(RIGHT_PLAYER_ORIGIN);
 
     // Ball
@@ -92,7 +100,8 @@ fn startup_system(
             ..Default::default()
         })
         .insert(Ball)
-        .insert(BALL_ORIGIN);
+        .insert(BALL_ORIGIN)
+        .insert(Velocity(Vec2::new(1.0, 0.0)));
 
     // Dashes
     let window_top = (window.height / 2.0).abs();
@@ -120,29 +129,24 @@ fn startup_system(
 // Player 2 -> UP -> 'W' Key
 // Player 2 -> DOWN -> 'S' Key
 #[allow(clippy::type_complexity)]
-fn keyboard_input_system(
-    mut players: QuerySet<(
-        Query<&mut Position, With<LeftPlayer>>,
-        Query<&mut Position, With<RightPlayer>>,
-    )>,
-    key: Res<Input<KeyCode>>,
-) {
-    // TODO Rewrite using 'direction' and 'paddle.speed' instead of linear increments
-    for mut left_position in players.q0_mut().iter_mut() {
-        if key.pressed(KeyCode::W) {
-            left_position.y += 1.0;
-        } else if key.pressed(KeyCode::S) {
-            left_position.y -= 1.0;
+fn keyboard_input_system(mut players: Query<(&mut Position, &Player)>, key: Res<Input<KeyCode>>) {
+    for (mut position, player) in players.iter_mut() {
+        match player.player_type {
+            PlayerType::LeftPlayer => {
+                if key.pressed(KeyCode::W) {
+                    position.y += 1.0
+                } else if key.pressed(KeyCode::S) {
+                    position.y -= 1.0
+                }
+            }
+            PlayerType::RightPlayer => {
+                if key.pressed(KeyCode::Up) {
+                    position.y += 1.0
+                } else if key.pressed(KeyCode::Down) {
+                    position.y -= 1.0
+                }
+            }
         }
-        left_position.y = left_position.y.min(50.0).max(-50.0);
-    }
-    for mut right_position in players.q1_mut().iter_mut() {
-        if key.pressed(KeyCode::Up) {
-            right_position.y += 1.0;
-        } else if key.pressed(KeyCode::Down) {
-            right_position.y -= 1.0;
-        }
-        right_position.y = right_position.y.min(50.0).max(-50.0);
     }
 }
 
