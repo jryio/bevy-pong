@@ -1,7 +1,7 @@
 pub mod systems;
 
 use crate::systems::{collision::collision_system, velocity::velocity_system};
-use bevy::{core::FixedTimestep, prelude::*, render::pass::ClearColor};
+use bevy::{prelude::*, render::pass::ClearColor};
 
 fn main() {
     App::build()
@@ -17,11 +17,18 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_startup_system(startup_system.system())
-        .add_system_set(SystemSet::new().with_run_criteria(FixedTimestep::step(TIME_STEP as f64)))
-        .add_system(keyboard_input_system.system())
-        .add_system(render_system.system())
-        .add_system(collision_system.system())
-        .add_system(velocity_system.system())
+        .add_system_set(
+            SystemSet::new()
+                .label("input")
+                .with_system(keyboard_input_system.system()),
+        )
+        .add_system_set(
+            SystemSet::new()
+                .label("physics")
+                .with_system(collision_system.system().label("collision"))
+                .with_system(velocity_system.system().after("collision")),
+        )
+        .add_system(render_system.system().after("physics"))
         .run();
 }
 
@@ -30,7 +37,7 @@ fn main() {
  */
 
 // Player Type
-enum PlayerType {
+pub enum PlayerType {
     LeftPlayer,
     RightPlayer,
 }
@@ -47,10 +54,10 @@ pub struct Position {
 pub struct Velocity(Vec2);
 pub struct Ball;
 
-const TIME_STEP: f32 = 1.0 / 60.0;
 const LEFT_PLAYER_ORIGIN: Position = Position { x: -42.5, y: 0.0 };
 const RIGHT_PLAYER_ORIGIN: Position = Position { x: 42.5, y: 0.0 };
 const BALL_ORIGIN: Position = Position { x: 0.0, y: 0.0 };
+const BALL_SIZE: [f32; 2] = [5.0, 5.0];
 const PADDLE_HEIGHT: f32 = 36.0;
 const PADDLE_SIZE: [f32; 2] = [6.0, PADDLE_HEIGHT];
 const DASH_WIDTH: f32 = 1.0;
@@ -78,6 +85,7 @@ fn startup_system(
         .insert(Player {
             player_type: PlayerType::LeftPlayer,
         })
+        .insert(Size::new(PADDLE_SIZE[0], PADDLE_SIZE[1]))
         .insert(LEFT_PLAYER_ORIGIN);
 
     // Right Player
@@ -90,18 +98,20 @@ fn startup_system(
         .insert(Player {
             player_type: PlayerType::RightPlayer,
         })
+        .insert(Size::new(PADDLE_SIZE[0], PADDLE_SIZE[1]))
         .insert(RIGHT_PLAYER_ORIGIN);
 
     // Ball
     commands
         .spawn_bundle(SpriteBundle {
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
-            sprite: Sprite::new(Vec2::new(5.0, 5.0)),
+            sprite: Sprite::new(Vec2::from(BALL_SIZE)),
             ..Default::default()
         })
         .insert(Ball)
         .insert(BALL_ORIGIN)
-        .insert(Velocity(Vec2::new(1.0, 0.0)));
+        .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
+        .insert(Velocity(Vec2::new(0.25, 0.0)));
 
     // Dashes
     let window_top = (window.height / 2.0).abs();
@@ -150,7 +160,6 @@ fn keyboard_input_system(mut players: Query<(&mut Position, &Player)>, key: Res<
     }
 }
 
-// TODO: Consider using only absolute positions
 // Convert relative position to absolute
 fn render_system(mut query: Query<(&Position, &mut Transform)>, window: Res<WindowDescriptor>) {
     for (position, mut transform) in query.iter_mut() {
