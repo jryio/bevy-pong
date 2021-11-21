@@ -1,12 +1,13 @@
-pub mod systems;
+mod systems;
 
-use crate::systems::{collision::collision_system, velocity::velocity_system};
+use crate::systems::{collision::collision_system, round::round_system, velocity::velocity_system};
 use bevy::{prelude::*, render::pass::ClearColor};
 
 fn main() {
     App::build()
         // Clear Color is the background color
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
+        .insert_resource(Scoreboard::default())
         .insert_resource(WindowDescriptor {
             title: "Bevy Pong".to_string(),
             width: 1000.0,
@@ -17,6 +18,7 @@ fn main() {
         })
         .add_plugins(DefaultPlugins)
         .add_startup_system(startup_system.system())
+        .add_system(round_system.system())
         .add_system_set(
             SystemSet::new()
                 .label("input")
@@ -53,6 +55,20 @@ pub struct Position {
 
 pub struct Velocity(Vec2);
 pub struct Ball;
+pub struct LostRound;
+pub enum WallSide {
+    Left,
+    Right,
+}
+pub struct Wall {
+    side: WallSide,
+}
+
+#[derive(Default)]
+pub struct Scoreboard {
+    left_score: usize,
+    right_score: usize,
+}
 
 const LEFT_PLAYER_ORIGIN: Position = Position { x: -42.5, y: 0.0 };
 const RIGHT_PLAYER_ORIGIN: Position = Position { x: 42.5, y: 0.0 };
@@ -113,6 +129,43 @@ fn startup_system(
         .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
         .insert(Velocity(Vec2::new(0.25, 0.0)));
 
+    // Invisible walls for collision detection
+    let wall_material = materials.add(Color::rgb(1.0, 1.0, 1.0).into());
+    let wall_thickess = 1.0;
+    // Left Side -> Top Wall
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: wall_material.clone(),
+            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickess)),
+            transform: Transform::from_xyz(-window.width / 4.0, (window.height / 2.0) - 1.0, 0.0),
+            ..Default::default()
+        })
+        .insert(Wall {
+            side: WallSide::Left,
+        });
+    // Left Side -> Left Wall
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: wall_material.clone(),
+            sprite: Sprite::new(Vec2::new(wall_thickess, window.height)),
+            transform: Transform::from_xyz((-window.width / 2.0) + 1.0, 0.0, 0.0),
+            ..Default::default()
+        })
+        .insert(Wall {
+            side: WallSide::Left,
+        });
+    // Left Side -> Bottom Wall
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: wall_material.clone(),
+            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickess)),
+            transform: Transform::from_xyz(-window.width / 5.0, -(window.height / 2.0) + 1.0, 0.0),
+            ..Default::default()
+        })
+        .insert(Wall {
+            side: WallSide::Left,
+        });
+
     // Dashes
     let window_top = (window.height / 2.0).abs();
     let dash_material = materials.add(Color::rgb(1.0, 1.0, 1.0).into());
@@ -124,7 +177,7 @@ fn startup_system(
         dashes.push(SpriteBundle {
             material: dash_material.clone(),
             sprite: dash_sprite.clone(),
-            transform: Transform::from_translation(Vec3::new(0.0, y, 0.0)),
+            transform: Transform::from_xyz(0.0, y, 0.0),
             ..Default::default()
         });
     }
