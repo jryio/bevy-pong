@@ -1,6 +1,11 @@
 pub mod systems;
 
-use crate::systems::{collision::collision_system, velocity::velocity_system};
+use crate::systems::{
+    collision::collision_system,
+    particle::{particle_emission_system, particle_update_time_system},
+    velocity::velocity_system,
+};
+use bevy::core::FixedTimestep;
 use bevy::{prelude::*, render::pass::ClearColor};
 
 fn main() {
@@ -29,11 +34,18 @@ fn main() {
                 .with_system(velocity_system.system().after("collision")),
         )
         .add_system(render_system.system().after("physics"))
+        .add_system_set(
+            SystemSet::new()
+                .with_run_criteria(FixedTimestep::step(0.15))
+                .with_system(particle_emission_system.system()),
+        )
+        .add_system(particle_update_time_system.system())
         .run();
 }
 
 /*
- * Components
+ * Component,
+ *
  */
 
 // Player Type
@@ -53,6 +65,11 @@ pub struct Position {
 
 pub struct Velocity(Vec2);
 pub struct Ball;
+
+pub struct ParticleEmitter;
+pub struct Particle {
+    ttl: Timer,
+}
 
 const LEFT_PLAYER_ORIGIN: Position = Position { x: -42.5, y: 0.0 };
 const RIGHT_PLAYER_ORIGIN: Position = Position { x: 42.5, y: 0.0 };
@@ -110,6 +127,7 @@ fn startup_system(
         })
         .insert(Ball)
         .insert(BALL_ORIGIN)
+        .insert(ParticleEmitter)
         .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
         .insert(Velocity(Vec2::new(0.25, 0.0)));
 
