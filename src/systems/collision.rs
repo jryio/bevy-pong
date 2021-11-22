@@ -1,35 +1,43 @@
-use crate::{Ball, Player, PlayerType, Velocity, Wall, WallSide};
+use crate::{Ball, Player, PlayerType, Velocity, WallSide};
 use bevy::{prelude::*, sprite};
 
 type Collision = sprite::collide_aabb::Collision;
 
+// TODO: Bevy provides a mechanism to create sub-systems. I imagine we would group together
+// multiple different collision systems together in order to compose everything.
 pub fn collision_system(
-    mut ball_query: Query<(&Transform, &Size, &mut Velocity, &Ball)>,
-    player_query: Query<(&Transform, &Size, &Player)>,
-    wall_query: Query<(&Transform, &Size, &Wall)>,
+    mut commands: Commands,
+    mut ball_query: Query<(Entity, &Transform, &Sprite, &mut Velocity, &Ball)>,
+    player_query: Query<(&Transform, &Sprite, &Player)>,
+    wall_query: Query<(&Transform, &Sprite, &WallSide)>,
 ) {
-    if let Ok((ball_transform, ball_size, mut ball_velocity, _)) = ball_query.single_mut() {
-        for (wall_transform, wall_size, wall) in wall_query.iter() {
-            if wall_collision(
-                &ball_transform,
-                &ball_size,
-                &ball_velocity,
-                &wall_transform,
-                &wall_size,
-                &wall,
+    if let Ok((entity, ball_transform, ball_sprite, mut ball_velocity, _)) = ball_query.single_mut()
+    {
+        for (wall_transform, wall_size, wall_side) in wall_query.iter() {
+            if let Some(side) = wall_collision(
+                ball_transform,
+                ball_sprite,
+                wall_transform,
+                wall_size,
+                wall_side,
             ) {
+                // https://bevy-cheatbook.github.io/programming/commands.html
+                commands.entity(entity).insert(side);
+                println!("JRY INSERTED COLLISION SIDE TO BALL");
                 break;
             }
         }
 
+        println!("JRY BALL POS = {:?}", ball_transform.translation);
+
         for (player_transform, player_size, player_type) in player_query.iter() {
             paddle_collision(
-                &ball_transform,
-                &ball_size,
+                ball_transform,
+                ball_sprite,
                 &mut ball_velocity,
-                &player_transform,
-                &player_size,
-                &player_type,
+                player_transform,
+                player_size,
+                player_type,
             );
         }
     }
@@ -37,54 +45,53 @@ pub fn collision_system(
 
 fn wall_collision(
     ball_transform: &Transform,
-    ball_size: &Size,
-    ball_velocity: &Velocity,
+    ball_sprite: &Sprite,
     wall_transform: &Transform,
-    wall_size: &Size,
-    wall: &Wall,
-) -> bool {
+    wall_sprite: &Sprite,
+    wall_side: &WallSide,
+) -> Option<WallSide> {
     let ball_pos = ball_transform.translation;
-    let ball_size = Vec2::from((ball_size.width, ball_size.height));
+    let ball_size = ball_sprite.size; //Vec2::from((ball_size.width, ball_size.height));
     let wall_pos = wall_transform.translation;
-    let wall_size = Vec2::from((wall_size.width, wall_size.height));
+    let wall_size = wall_sprite.size; // Vec2::from((wall_.size.x, wall_size.size.y));
 
-    // TODO: Need to add Entity to the query, then need to insert a component that says that there
-    // has been a game ending collision
-    //
-    // https://bevy-cheatbook.github.io/programming/commands.html
-    if let Some(collision) = sprite::collide_aabb::collide(ball_pos, ball_size, wall_pos, wall_size)
-    {
-        match (wall, collision) {
-            (
-                Wall {
-                    side: WallSide::Left,
-                },
-                _,
-            ) => true,
-            (
-                Wall {
-                    side: WallSide::Right,
-                },
-                _,
-            ) => true,
+    // let collision = sprite::collide_aabb::collide(ball_pos, ball_size, wall_pos, wall_size);
+    match (
+        wall_side,
+        sprite::collide_aabb::collide(ball_pos, ball_size, wall_pos, wall_size),
+    ) {
+        (WallSide::Left, Some(_)) => {
+            // println!(
+            //     "JRY --------- ball_pos = {:?} wall_pos = {:?} wall_size = {:?}",
+            //     ball_pos, wall_pos, wall_size
+            // );
+            // println!("JRY --------- collision ={:?}", collision);
+            Some(WallSide::Left)
         }
-    } else {
-        false
+        (WallSide::Right, Some(_)) => {
+            // println!(
+            //     "JRY --------- ball_pos = {:?} wall_pos = {:?} wall_size = {:?}",
+            //     ball_pos, wall_pos, wall_size
+            // );
+            // println!("JRY --------- collision ={:?}", collision);
+            Some(WallSide::Right)
+        }
+        (_, None) => None,
     }
 }
 
 fn paddle_collision(
     ball_transform: &Transform,
-    ball_size: &Size,
+    ball_sprite: &Sprite,
     ball_velocity: &mut Velocity,
     player_transform: &Transform,
-    player_size: &Size,
+    player_sprite: &Sprite,
     player_type: &Player,
 ) {
     let ball_pos = ball_transform.translation;
-    let ball_size = Vec2::from((ball_size.width, ball_size.height));
+    let ball_size = ball_sprite.size; // Vec2::from((ball_size.width, ball_size.height));
     let player_pos = player_transform.translation;
-    let player_size = Vec2::from((player_size.width, player_size.height));
+    let player_size = player_sprite.size; // Vec2::from((player_size.width, player_size.height));
     if let Some(collision) =
         sprite::collide_aabb::collide(ball_pos, ball_size, player_pos, player_size)
     {
@@ -92,7 +99,7 @@ fn paddle_collision(
             // Right Player
             (
                 Player {
-                    player_type: PlayerType::RightPlayer,
+                    player_type: PlayerType::Right,
                 },
                 Collision::Left,
             ) => {
@@ -102,7 +109,7 @@ fn paddle_collision(
             }
             (
                 Player {
-                    player_type: PlayerType::RightPlayer,
+                    player_type: PlayerType::Right,
                 },
                 Collision::Top,
             ) => {
@@ -112,7 +119,7 @@ fn paddle_collision(
             }
             (
                 Player {
-                    player_type: PlayerType::RightPlayer,
+                    player_type: PlayerType::Right,
                 },
                 Collision::Bottom,
             ) => {
@@ -122,7 +129,7 @@ fn paddle_collision(
             }
             (
                 Player {
-                    player_type: PlayerType::RightPlayer,
+                    player_type: PlayerType::Right,
                 },
                 _,
             ) => {
@@ -131,7 +138,7 @@ fn paddle_collision(
             // Left Player
             (
                 Player {
-                    player_type: PlayerType::LeftPlayer,
+                    player_type: PlayerType::Left,
                 },
                 Collision::Right,
             ) => {
@@ -141,7 +148,7 @@ fn paddle_collision(
             }
             (
                 Player {
-                    player_type: PlayerType::LeftPlayer,
+                    player_type: PlayerType::Left,
                 },
                 Collision::Top,
             ) => {
@@ -151,7 +158,7 @@ fn paddle_collision(
             }
             (
                 Player {
-                    player_type: PlayerType::LeftPlayer,
+                    player_type: PlayerType::Left,
                 },
                 Collision::Bottom,
             ) => {
@@ -161,7 +168,7 @@ fn paddle_collision(
             }
             (
                 Player {
-                    player_type: PlayerType::LeftPlayer,
+                    player_type: PlayerType::Left,
                 },
                 _,
             ) => {
