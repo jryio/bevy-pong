@@ -7,7 +7,7 @@ fn main() {
     App::build()
         // Clear Color is the background color
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
-        .insert_resource(Scoreboard::default())
+        .insert_resource(Game::default())
         .insert_resource(WindowDescriptor {
             title: "Bevy Pong".to_string(),
             width: 1000.0,
@@ -39,15 +39,18 @@ fn main() {
  */
 
 // Player Type
+#[derive(Debug)]
 pub enum PlayerType {
-    LeftPlayer,
-    RightPlayer,
+    Left,
+    Right,
 }
+#[derive(Debug)]
 pub struct Player {
     player_type: PlayerType,
 }
 
 // Positions are percentage based
+#[derive(Clone)]
 pub struct Position {
     x: f32,
     y: f32,
@@ -56,23 +59,37 @@ pub struct Position {
 pub struct Velocity(Vec2);
 pub struct Ball;
 pub struct LostRound;
+pub struct Wall {
+    side: WallSide,
+}
+#[derive(Debug)]
 pub enum WallSide {
     Left,
     Right,
 }
-pub struct Wall {
-    side: WallSide,
-}
 
-#[derive(Default)]
-pub struct Scoreboard {
+pub enum PrevWinner {
+    None,
+    Player(PlayerType),
+}
+pub struct Game {
     left_score: usize,
     right_score: usize,
+    prev_winner: PrevWinner,
+}
+impl Default for Game {
+    fn default() -> Self {
+        Self {
+            left_score: 0,
+            right_score: 0,
+            prev_winner: PrevWinner::None,
+        }
+    }
 }
 
-const LEFT_PLAYER_ORIGIN: Position = Position { x: -42.5, y: 0.0 };
-const RIGHT_PLAYER_ORIGIN: Position = Position { x: 42.5, y: 0.0 };
-const BALL_ORIGIN: Position = Position { x: 0.0, y: 0.0 };
+pub const LEFT_PLAYER_ORIGIN: Position = Position { x: -42.5, y: 0.0 };
+pub const RIGHT_PLAYER_ORIGIN: Position = Position { x: 42.5, y: 0.0 };
+pub const BALL_ORIGIN: Position = Position { x: 0.0, y: 0.0 };
 const BALL_SIZE: [f32; 2] = [5.0, 5.0];
 const PADDLE_HEIGHT: f32 = 36.0;
 const PADDLE_SIZE: [f32; 2] = [6.0, PADDLE_HEIGHT];
@@ -99,7 +116,7 @@ fn startup_system(
             ..Default::default()
         })
         .insert(Player {
-            player_type: PlayerType::LeftPlayer,
+            player_type: PlayerType::Left,
         })
         .insert(Size::new(PADDLE_SIZE[0], PADDLE_SIZE[1]))
         .insert(LEFT_PLAYER_ORIGIN);
@@ -112,7 +129,7 @@ fn startup_system(
             ..Default::default()
         })
         .insert(Player {
-            player_type: PlayerType::RightPlayer,
+            player_type: PlayerType::Right,
         })
         .insert(Size::new(PADDLE_SIZE[0], PADDLE_SIZE[1]))
         .insert(RIGHT_PLAYER_ORIGIN);
@@ -127,11 +144,11 @@ fn startup_system(
         .insert(Ball)
         .insert(BALL_ORIGIN)
         .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
-        .insert(Velocity(Vec2::new(0.25, 0.0)));
+        .insert(Velocity(Vec2::new(0.65, 0.0)));
 
     // Invisible walls for collision detection
     let wall_material = materials.add(Color::rgb(1.0, 1.0, 1.0).into());
-    let wall_thickess = 1.0;
+    let wall_thickess = BALL_SIZE[0];
     // Left Side -> Top Wall
     commands
         .spawn_bundle(SpriteBundle {
@@ -140,9 +157,7 @@ fn startup_system(
             transform: Transform::from_xyz(-window.width / 4.0, (window.height / 2.0) - 1.0, 0.0),
             ..Default::default()
         })
-        .insert(Wall {
-            side: WallSide::Left,
-        });
+        .insert(WallSide::Left);
     // Left Side -> Left Wall
     commands
         .spawn_bundle(SpriteBundle {
@@ -151,20 +166,16 @@ fn startup_system(
             transform: Transform::from_xyz((-window.width / 2.0) + 1.0, 0.0, 0.0),
             ..Default::default()
         })
-        .insert(Wall {
-            side: WallSide::Left,
-        });
+        .insert(WallSide::Left);
     // Left Side -> Bottom Wall
     commands
         .spawn_bundle(SpriteBundle {
-            material: wall_material.clone(),
+            material: wall_material,
             sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickess)),
-            transform: Transform::from_xyz(-window.width / 5.0, -(window.height / 2.0) + 1.0, 0.0),
+            transform: Transform::from_xyz(-window.width / 4.0, -(window.height / 2.0) + 1.0, 0.0),
             ..Default::default()
         })
-        .insert(Wall {
-            side: WallSide::Left,
-        });
+        .insert(WallSide::Left);
 
     // Dashes
     let window_top = (window.height / 2.0).abs();
@@ -195,14 +206,14 @@ fn startup_system(
 fn keyboard_input_system(mut players: Query<(&mut Position, &Player)>, key: Res<Input<KeyCode>>) {
     for (mut position, player) in players.iter_mut() {
         match player.player_type {
-            PlayerType::LeftPlayer => {
+            PlayerType::Left => {
                 if key.pressed(KeyCode::W) {
                     position.y += 1.0
                 } else if key.pressed(KeyCode::S) {
                     position.y -= 1.0
                 }
             }
-            PlayerType::RightPlayer => {
+            PlayerType::Right => {
                 if key.pressed(KeyCode::Up) {
                     position.y += 1.0
                 } else if key.pressed(KeyCode::Down) {
