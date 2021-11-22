@@ -23,12 +23,9 @@ pub fn collision_system(
             ) {
                 // https://bevy-cheatbook.github.io/programming/commands.html
                 commands.entity(entity).insert(side);
-                println!("JRY INSERTED COLLISION SIDE TO BALL");
                 break;
             }
         }
-
-        println!("JRY BALL POS = {:?}", ball_transform.translation);
 
         for (player_transform, player_size, player_type) in player_query.iter() {
             paddle_collision(
@@ -60,22 +57,8 @@ fn wall_collision(
         wall_side,
         sprite::collide_aabb::collide(ball_pos, ball_size, wall_pos, wall_size),
     ) {
-        (WallSide::Left, Some(_)) => {
-            // println!(
-            //     "JRY --------- ball_pos = {:?} wall_pos = {:?} wall_size = {:?}",
-            //     ball_pos, wall_pos, wall_size
-            // );
-            // println!("JRY --------- collision ={:?}", collision);
-            Some(WallSide::Left)
-        }
-        (WallSide::Right, Some(_)) => {
-            // println!(
-            //     "JRY --------- ball_pos = {:?} wall_pos = {:?} wall_size = {:?}",
-            //     ball_pos, wall_pos, wall_size
-            // );
-            // println!("JRY --------- collision ={:?}", collision);
-            Some(WallSide::Right)
-        }
+        (WallSide::Left, Some(_)) => Some(WallSide::Left),
+        (WallSide::Right, Some(_)) => Some(WallSide::Right),
         (_, None) => None,
     }
 }
