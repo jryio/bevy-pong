@@ -148,34 +148,57 @@ fn startup_system(
 
     // Invisible walls for collision detection
     let wall_material = materials.add(Color::rgb(1.0, 1.0, 1.0).into());
-    let wall_thickess = BALL_SIZE[0];
-    // Left Side -> Top Wall
+    let wall_thickness = BALL_SIZE[0];
+    // Left Side -> Top, Left, Bottom
     commands
         .spawn_bundle(SpriteBundle {
             material: wall_material.clone(),
-            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickess)),
+            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickness)),
             transform: Transform::from_xyz(-window.width / 4.0, (window.height / 2.0) - 1.0, 0.0),
             ..Default::default()
         })
         .insert(WallSide::Left);
-    // Left Side -> Left Wall
     commands
         .spawn_bundle(SpriteBundle {
             material: wall_material.clone(),
-            sprite: Sprite::new(Vec2::new(wall_thickess, window.height)),
+            sprite: Sprite::new(Vec2::new(wall_thickness, window.height)),
             transform: Transform::from_xyz((-window.width / 2.0) + 1.0, 0.0, 0.0),
             ..Default::default()
         })
         .insert(WallSide::Left);
-    // Left Side -> Bottom Wall
     commands
         .spawn_bundle(SpriteBundle {
-            material: wall_material,
-            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickess)),
+            material: wall_material.clone(),
+            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickness)),
             transform: Transform::from_xyz(-window.width / 4.0, -(window.height / 2.0) + 1.0, 0.0),
             ..Default::default()
         })
         .insert(WallSide::Left);
+    // Right Side -> Top, Right, Bottom
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: wall_material.clone(),
+            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickness)),
+            transform: Transform::from_xyz(window.width / 4.0, (window.height / 2.0) - 1.0, 0.0),
+            ..Default::default()
+        })
+        .insert(WallSide::Right);
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: wall_material.clone(),
+            sprite: Sprite::new(Vec2::new(wall_thickness, window.height)),
+            transform: Transform::from_xyz((window.width / 2.0) - 1.0, 0.0, 0.0),
+            ..Default::default()
+        })
+        .insert(WallSide::Right);
+    commands
+        .spawn_bundle(SpriteBundle {
+            material: wall_material,
+            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickness)),
+            transform: Transform::from_xyz(window.width / 4.0, -(window.height / 2.0) + 1.0, 0.0),
+            ..Default::default()
+        })
+        .insert(WallSide::Right);
 
     // Dashes
     let window_top = (window.height / 2.0).abs();

@@ -12,7 +12,7 @@ pub fn round_system(
     mut commands: Commands,
     mut game: ResMut<Game>,
     mut ball_query: Query<(Entity, &WallSide), With<Ball>>,
-    mut player_query: Query<(Entity, &Player), With<Player>>,
+    player_query: Query<(Entity, &Player), With<Player>>,
 ) {
     if let Ok((ball_entity, wall_side_collision)) = ball_query.single_mut() {
         // Increment score
