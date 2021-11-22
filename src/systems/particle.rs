@@ -26,11 +26,11 @@ pub fn particle_emission_system(
 pub fn particle_update_time_system(
     mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<(&Entity, &mut Particle)>,
+    mut query: Query<(Entity, &mut Particle)>,
 ) {
     for (entity, mut particle) in query.iter_mut() {
         if particle.ttl.tick(time.delta()).just_finished() {
-            commands.entity(*entity).despawn();
+            commands.entity(entity).despawn();
         }
     }
 }
