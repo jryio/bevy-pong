@@ -1,7 +1,57 @@
+mod constants;
 mod systems;
 
+use crate::constants::*;
 use crate::systems::{collision::collision_system, round::round_system, velocity::velocity_system};
 use bevy::{prelude::*, render::pass::ClearColor};
+
+pub enum PrevWinner {
+    None,
+    Player(PlayerType),
+}
+pub struct Game {
+    left_score: usize,
+    right_score: usize,
+    prev_winner: PrevWinner,
+}
+impl Default for Game {
+    fn default() -> Self {
+        Self {
+            left_score: 0,
+            right_score: 0,
+            prev_winner: PrevWinner::None,
+        }
+    }
+}
+// Player Type
+#[derive(Debug)]
+pub enum PlayerType {
+    Left,
+    Right,
+}
+#[derive(Debug)]
+pub struct Player {
+    player_type: PlayerType,
+}
+
+// Positions are percentage based
+#[derive(Clone)]
+pub struct Position {
+    x: f32,
+    y: f32,
+}
+
+pub struct Velocity(Vec2);
+pub struct Ball;
+pub struct LostRound;
+pub struct Wall {
+    side: WallSide,
+}
+#[derive(Debug)]
+pub enum WallSide {
+    Left,
+    Right,
+}
 
 fn main() {
     App::build()
@@ -33,70 +83,6 @@ fn main() {
         .add_system(render_system.system().after("physics"))
         .run();
 }
-
-/*
- * Components
- */
-
-// Player Type
-#[derive(Debug)]
-pub enum PlayerType {
-    Left,
-    Right,
-}
-#[derive(Debug)]
-pub struct Player {
-    player_type: PlayerType,
-}
-
-// Positions are percentage based
-#[derive(Clone)]
-pub struct Position {
-    x: f32,
-    y: f32,
-}
-
-pub struct Velocity(Vec2);
-pub struct Ball;
-pub struct LostRound;
-pub struct Wall {
-    side: WallSide,
-}
-#[derive(Debug)]
-pub enum WallSide {
-    Left,
-    Right,
-}
-
-pub enum PrevWinner {
-    None,
-    Player(PlayerType),
-}
-pub struct Game {
-    left_score: usize,
-    right_score: usize,
-    prev_winner: PrevWinner,
-}
-impl Default for Game {
-    fn default() -> Self {
-        Self {
-            left_score: 0,
-            right_score: 0,
-            prev_winner: PrevWinner::None,
-        }
-    }
-}
-
-pub const LEFT_PLAYER_ORIGIN: Position = Position { x: -42.5, y: 0.0 };
-pub const RIGHT_PLAYER_ORIGIN: Position = Position { x: 42.5, y: 0.0 };
-pub const BALL_ORIGIN: Position = Position { x: 0.0, y: 0.0 };
-const BALL_SIZE: [f32; 2] = [5.0, 5.0];
-const PADDLE_HEIGHT: f32 = 36.0;
-const PADDLE_SIZE: [f32; 2] = [6.0, PADDLE_HEIGHT];
-const DASH_WIDTH: f32 = 1.0;
-const DASH_HEIGHT: f32 = 8.0;
-const DASH_SIZE: [f32; 2] = [DASH_WIDTH, DASH_HEIGHT];
-const DASH_PADDING: f32 = 20.0;
 
 // The origin (0,0) of bevy's coordinate system is in the center of the screen
 fn startup_system(
