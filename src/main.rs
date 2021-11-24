@@ -44,8 +44,10 @@ pub struct Position {
 pub struct Velocity(Vec2);
 pub struct Ball;
 pub struct LostRound;
-pub struct Wall {
-    side: WallSide,
+
+pub enum Collidable {
+    Reflect, // Something that is collidable but reflects the ball
+    End,     // Something that is collidable but ends the balls movement
 }
 #[derive(Debug)]
 pub enum WallSide {
@@ -105,7 +107,8 @@ fn startup_system(
             player_type: PlayerType::Left,
         })
         .insert(Size::new(PADDLE_SIZE[0], PADDLE_SIZE[1]))
-        .insert(LEFT_PLAYER_ORIGIN);
+        .insert(LEFT_PLAYER_ORIGIN)
+        .insert(Collidable::Reflect);
 
     // Right Player
     commands
@@ -118,7 +121,8 @@ fn startup_system(
             player_type: PlayerType::Right,
         })
         .insert(Size::new(PADDLE_SIZE[0], PADDLE_SIZE[1]))
-        .insert(RIGHT_PLAYER_ORIGIN);
+        .insert(RIGHT_PLAYER_ORIGIN)
+        .insert(Collidable::Reflect);
 
     // Ball
     commands
@@ -135,56 +139,42 @@ fn startup_system(
     // Invisible walls for collision detection
     let wall_material = materials.add(Color::rgb(1.0, 1.0, 1.0).into());
     let wall_thickness = BALL_SIZE[0];
-    // Left Side -> Top, Left, Bottom
-    commands
-        .spawn_bundle(SpriteBundle {
-            material: wall_material.clone(),
-            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickness)),
-            transform: Transform::from_xyz(-window.width / 4.0, (window.height / 2.0) - 1.0, 0.0),
-            ..Default::default()
-        })
-        .insert(WallSide::Left);
-    commands
+    commands // Left wall
         .spawn_bundle(SpriteBundle {
             material: wall_material.clone(),
             sprite: Sprite::new(Vec2::new(wall_thickness, window.height)),
             transform: Transform::from_xyz((-window.width / 2.0) + 1.0, 0.0, 0.0),
             ..Default::default()
         })
-        .insert(WallSide::Left);
-    commands
-        .spawn_bundle(SpriteBundle {
-            material: wall_material.clone(),
-            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickness)),
-            transform: Transform::from_xyz(-window.width / 4.0, -(window.height / 2.0) + 1.0, 0.0),
-            ..Default::default()
-        })
-        .insert(WallSide::Left);
-    // Right Side -> Top, Right, Bottom
-    commands
-        .spawn_bundle(SpriteBundle {
-            material: wall_material.clone(),
-            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickness)),
-            transform: Transform::from_xyz(window.width / 4.0, (window.height / 2.0) - 1.0, 0.0),
-            ..Default::default()
-        })
-        .insert(WallSide::Right);
-    commands
+        .insert(WallSide::Left)
+        .insert(Collidable::End);
+
+    commands // Right wall
         .spawn_bundle(SpriteBundle {
             material: wall_material.clone(),
             sprite: Sprite::new(Vec2::new(wall_thickness, window.height)),
             transform: Transform::from_xyz((window.width / 2.0) - 1.0, 0.0, 0.0),
             ..Default::default()
         })
-        .insert(WallSide::Right);
-    commands
+        .insert(WallSide::Right)
+        .insert(Collidable::End);
+
+    commands // Top wall
         .spawn_bundle(SpriteBundle {
-            material: wall_material,
-            sprite: Sprite::new(Vec2::new(window.width / 2.0, wall_thickness)),
-            transform: Transform::from_xyz(window.width / 4.0, -(window.height / 2.0) + 1.0, 0.0),
+            material: wall_material.clone(),
+            sprite: Sprite::new(Vec2::new(window.width, wall_thickness)),
+            transform: Transform::from_xyz(0.0, (window.height / 2.0) - 1.0, 0.0),
             ..Default::default()
         })
-        .insert(WallSide::Right);
+        .insert(Collidable::Reflect);
+    commands // Bottom wall
+        .spawn_bundle(SpriteBundle {
+            material: wall_material,
+            sprite: Sprite::new(Vec2::new(window.width, wall_thickness)),
+            transform: Transform::from_xyz(0.0, -(window.height / 2.0) + 1.0, 0.0),
+            ..Default::default()
+        })
+        .insert(Collidable::Reflect);
 
     // Dashes
     let window_top = (window.height / 2.0).abs();
