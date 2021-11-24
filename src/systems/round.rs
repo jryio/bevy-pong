@@ -1,7 +1,4 @@
-use crate::{
-    Ball, Game, Player, PlayerType, Position, PrevWinner, Velocity, WallSide, BALL_ORIGIN,
-    LEFT_PLAYER_ORIGIN, RIGHT_PLAYER_ORIGIN,
-};
+use crate::{Ball, Game, Player, PlayerType, PrevWinner, Velocity, WallSide};
 use bevy::prelude::*;
 
 // 1. Respond when ball collides on left half or right half
@@ -28,32 +25,23 @@ pub fn round_system(
         }
         // Remove collision side from ball
         commands.entity(ball_entity).remove::<WallSide>();
-        commands.entity(ball_entity).remove::<Position>();
         commands.entity(ball_entity).remove::<Transform>();
         commands.entity(ball_entity).remove::<Velocity>();
         // Insert initial state
-        commands.entity(ball_entity).insert(BALL_ORIGIN);
-        commands.entity(ball_entity).insert(Transform::from_xyz(
-            BALL_ORIGIN.x / 100.0 * window.width,
-            BALL_ORIGIN.y / 100.0 * window.height,
-            0.0,
-        ));
+        commands
+            .entity(ball_entity)
+            .insert(Transform::from_xyz(0.0, 0.0, 0.0));
 
         // Reset position for paddles
         for (player_entity, player) in player_query.iter() {
-            commands.entity(player_entity).remove::<Position>();
             commands.entity(player_entity).remove::<Transform>();
-            let origin = match player.player_type {
-                PlayerType::Left => LEFT_PLAYER_ORIGIN,
-                PlayerType::Right => RIGHT_PLAYER_ORIGIN,
-            };
             // Insert initial state
-            commands.entity(player_entity).insert(origin.clone());
-            commands.entity(player_entity).insert(Transform::from_xyz(
-                origin.x / 100.0 * window.width,
-                origin.y / 100.0 * window.height,
-                0.0,
-            ));
+            commands
+                .entity(player_entity)
+                .insert(match player.player_type {
+                    PlayerType::Left => Transform::from_xyz(-0.425 * window.width, 0.0, 0.0),
+                    PlayerType::Right => Transform::from_xyz(0.425 * window.width, 0.0, 0.0),
+                });
         }
     }
 }

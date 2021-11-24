@@ -1,9 +1,9 @@
-use crate::{Position, Velocity};
+use crate::Velocity;
 use bevy::prelude::*;
 
-pub fn velocity_system(mut query: Query<(&mut Position, &Velocity)>) {
-    for (mut position, velocity) in query.iter_mut() {
-        position.x += velocity.0.x;
-        position.y += velocity.0.y;
+pub fn velocity_system(mut query: Query<(&mut Transform, &Velocity)>) {
+    for (mut transform, velocity) in query.iter_mut() {
+        transform.translation.x += velocity.0.x;
+        transform.translation.y += velocity.0.y;
     }
 }
