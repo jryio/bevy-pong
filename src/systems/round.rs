@@ -31,7 +31,7 @@ pub fn round_system(
         commands.entity(ball_entity).remove::<Position>();
         commands.entity(ball_entity).remove::<Transform>();
         commands.entity(ball_entity).remove::<Velocity>();
-        println!("REMOVED BALL WALLSIDE, POSITION, TRANSFORM");
+        // Insert initial state
         commands.entity(ball_entity).insert(BALL_ORIGIN);
         commands.entity(ball_entity).insert(Transform::from_xyz(
             BALL_ORIGIN.x / 100.0 * window.width,
@@ -41,13 +41,13 @@ pub fn round_system(
 
         // Reset position for paddles
         for (player_entity, player) in player_query.iter() {
-            println!("REMOVED PLAYER POSITION, TRANSFORM");
             commands.entity(player_entity).remove::<Position>();
             commands.entity(player_entity).remove::<Transform>();
             let origin = match player.player_type {
                 PlayerType::Left => LEFT_PLAYER_ORIGIN,
                 PlayerType::Right => RIGHT_PLAYER_ORIGIN,
             };
+            // Insert initial state
             commands.entity(player_entity).insert(origin.clone());
             commands.entity(player_entity).insert(Transform::from_xyz(
                 origin.x / 100.0 * window.width,
