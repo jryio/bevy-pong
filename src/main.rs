@@ -37,13 +37,6 @@ pub struct Player {
     player_type: PlayerType,
 }
 
-// Positions are percentage based
-#[derive(Clone)]
-pub struct Position {
-    x: f32,
-    y: f32,
-}
-
 pub struct Velocity(Vec2);
 pub struct Ball;
 pub struct LostRound;
@@ -85,7 +78,7 @@ fn main() {
                 .with_system(collision_system.system().label("collision"))
                 .with_system(velocity_system.system().after("collision")),
         )
-        .add_system(render_system.system().after("physics"))
+        // .add_system(render_system.system().after("physics"))
         .run();
 }
 
@@ -104,13 +97,13 @@ fn startup_system(
         .spawn_bundle(SpriteBundle {
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
             sprite: Sprite::new(Vec2::from(PADDLE_SIZE)),
+            transform: Transform::from_xyz(0.425 * -window.width, 0.0, 0.0),
             ..Default::default()
         })
         .insert(Player {
             player_type: PlayerType::Left,
         })
         .insert(Size::new(PADDLE_SIZE[0], PADDLE_SIZE[1]))
-        .insert(LEFT_PLAYER_ORIGIN)
         .insert(Collidable::Reflect);
 
     // Right Player
@@ -118,13 +111,13 @@ fn startup_system(
         .spawn_bundle(SpriteBundle {
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
             sprite: Sprite::new(Vec2::from(PADDLE_SIZE)),
+            transform: Transform::from_xyz(0.425 * window.width, 0.0, 0.0),
             ..Default::default()
         })
         .insert(Player {
             player_type: PlayerType::Right,
         })
         .insert(Size::new(PADDLE_SIZE[0], PADDLE_SIZE[1]))
-        .insert(RIGHT_PLAYER_ORIGIN)
         .insert(Collidable::Reflect);
 
     // Ball
@@ -132,12 +125,12 @@ fn startup_system(
         .spawn_bundle(SpriteBundle {
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
             sprite: Sprite::new(Vec2::from(BALL_SIZE)),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..Default::default()
         })
         .insert(Ball)
-        .insert(BALL_ORIGIN)
         .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
-        .insert(Velocity(Vec2::new(0.65, 0.0)));
+        .insert(Velocity(Vec2::new(5.0, 0.0)));
 
     // Invisible walls for collision detection
     let wall_material = materials.add(Color::rgb(1.0, 1.0, 1.0).into());
@@ -198,11 +191,11 @@ fn startup_system(
     commands.spawn_batch(dashes);
 }
 
-// Convert relative position to absolute
-fn render_system(mut query: Query<(&Position, &mut Transform)>, window: Res<WindowDescriptor>) {
-    for (position, mut transform) in query.iter_mut() {
-        let translation = &mut transform.translation;
-        translation.x = position.x / 100.0 * window.width;
-        translation.y = position.y / 100.0 * window.height;
-    }
-}
+// // Convert relative position to absolute
+// fn render_system(mut query: Query<(&Position, &mut Transform)>, window: Res<WindowDescriptor>) {
+//     for (position, mut transform) in query.iter_mut() {
+//         let translation = &mut transform.translation;
+//         translation.x = position.x / 100.0 * window.width;
+//         translation.y = position.y / 100.0 * window.height;
+//     }
+// }

@@ -1,4 +1,5 @@
-use crate::{Player, PlayerType, Position};
+use crate::constants::{PADDLE_HEIGHT, PADDLE_VELOCITY};
+use crate::{Player, PlayerType};
 use bevy::prelude::*;
 
 // Controls
@@ -8,25 +9,31 @@ use bevy::prelude::*;
 // Player 2 -> UP -> 'W' Key
 // Player 2 -> DOWN -> 'S' Key
 pub fn keyboard_input_system(
-    mut players: Query<(&mut Position, &Player)>,
+    mut players: Query<(&mut Transform, &Player)>,
     key: Res<Input<KeyCode>>,
+    window: Res<WindowDescriptor>,
 ) {
-    for (mut position, player) in players.iter_mut() {
+    for (mut transform, player) in players.iter_mut() {
         match player.player_type {
             PlayerType::Left => {
                 if key.pressed(KeyCode::W) {
-                    position.y += 1.0
+                    transform.translation.y += PADDLE_VELOCITY
                 } else if key.pressed(KeyCode::S) {
-                    position.y -= 1.0
+                    transform.translation.y -= PADDLE_VELOCITY
                 }
             }
             PlayerType::Right => {
                 if key.pressed(KeyCode::Up) {
-                    position.y += 1.0
+                    transform.translation.y += PADDLE_VELOCITY
                 } else if key.pressed(KeyCode::Down) {
-                    position.y -= 1.0
+                    transform.translation.y -= PADDLE_VELOCITY
                 }
             }
         }
+        transform.translation.y = transform
+            .translation
+            .y
+            .max(-(window.height / 2.0) + PADDLE_HEIGHT / 2.0)
+            .min((window.height / 2.0) - PADDLE_HEIGHT / 2.0);
     }
 }
