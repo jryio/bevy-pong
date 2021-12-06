@@ -1,4 +1,4 @@
-use crate::{Ball, Collidable, Player, PlayerType, Velocity, WallSide};
+use crate::{Ball, Collidable, Velocity, WallSide};
 use bevy::{prelude::*, sprite};
 
 type Collision = sprite::collide_aabb::Collision;
