@@ -1,8 +1,6 @@
 use crate::{Ball, Collidable, Velocity, WallSide};
 use bevy::{prelude::*, sprite};
 
-type Collision = sprite::collide_aabb::Collision;
-
 #[allow(clippy::type_complexity)]
 pub fn collision_system(
     mut commands: Commands,
