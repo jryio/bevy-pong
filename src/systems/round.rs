@@ -1,4 +1,4 @@
-use crate::{Ball, Game, Player, PlayerType, PrevWinner, Velocity, WallSide};
+use crate::{Ball, Game, Player, PlayerType, Velocity, WallSide};
 use bevy::prelude::*;
 
 // 1. Respond when ball collides on left half or right half
@@ -16,11 +16,15 @@ pub fn round_system(
         match wall_side_collision {
             WallSide::Left => {
                 game.right_score += 1;
-                game.prev_winner = PrevWinner::Player(PlayerType::Right);
+                game.prev_winner = Some(Player {
+                    player_type: PlayerType::Right,
+                });
             }
             WallSide::Right => {
                 game.left_score += 1;
-                game.prev_winner = PrevWinner::Player(PlayerType::Left);
+                game.prev_winner = Some(Player {
+                    player_type: PlayerType::Left,
+                });
             }
         }
         // Remove collision side from ball

@@ -8,21 +8,17 @@ use crate::systems::{
 };
 use bevy::{prelude::*, render::pass::ClearColor};
 
-pub enum PrevWinner {
-    None,
-    Player(PlayerType),
-}
 pub struct Game {
     left_score: usize,
     right_score: usize,
-    prev_winner: PrevWinner,
+    prev_winner: Option<Player>,
 }
 impl Default for Game {
     fn default() -> Self {
         Self {
             left_score: 0,
             right_score: 0,
-            prev_winner: PrevWinner::None,
+            prev_winner: None,
         }
     }
 }
@@ -190,12 +186,3 @@ fn startup_system(
 
     commands.spawn_batch(dashes);
 }
-
-// // Convert relative position to absolute
-// fn render_system(mut query: Query<(&Position, &mut Transform)>, window: Res<WindowDescriptor>) {
-//     for (position, mut transform) in query.iter_mut() {
-//         let translation = &mut transform.translation;
-//         translation.x = position.x / 100.0 * window.width;
-//         translation.y = position.y / 100.0 * window.height;
-//     }
-// }
