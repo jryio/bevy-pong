@@ -1,4 +1,4 @@
-use bevy::prelude::Vec2;
+use bevy::prelude::{Timer, Vec2};
 
 pub struct Game {
     pub left_score: usize,
@@ -24,6 +24,10 @@ pub enum PlayerType {
 #[derive(Debug)]
 pub struct Player {
     pub player_type: PlayerType,
+}
+
+pub struct InputTimer {
+    pub timer: Timer,
 }
 
 #[derive(Debug)]

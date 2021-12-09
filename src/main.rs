@@ -8,7 +8,9 @@ use crate::systems::{
     collision::collision_system, input::keyboard_input_system, round::round_system,
     velocity::velocity_system,
 };
-use bevy::{core::FixedTimestep, prelude::*, render::pass::ClearColor};
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy::diagnostic::LogDiagnosticsPlugin;
+use bevy::{prelude::*, render::pass::ClearColor};
 
 fn main() {
     App::build()
@@ -24,19 +26,25 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
+        .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_startup_system(startup_system.system())
         .add_system(round_system.system())
         .add_system_set(
             SystemSet::new()
                 .label("input")
-                .with_run_criteria(FixedTimestep::step(TIMESTEP_10_PER_SECOND))
                 .with_system(keyboard_input_system.system()),
         )
         .add_system_set(
             SystemSet::new()
                 .label("physics")
                 .with_system(collision_system.system().label("collision"))
-                .with_system(velocity_system.system().after("collision")),
+                .with_system(
+                    velocity_system
+                        .system()
+                        .label("velocity")
+                        .after("collision"),
+                ),
         )
         // .add_system(render_system.system().after("physics"))
         .run();
@@ -90,9 +98,7 @@ fn startup_system(
         })
         .insert(Ball)
         .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
-        .insert(Velocity {
-            field1: Vec2::new(1.0 * BALL_SPEED, 0.0),
-        });
+        .insert(Velocity(Vec2::new(1.0 * BALL_SPEED, 0.0)));
 
     // Invisible walls for collision detection
     let wall_material = materials.add(Color::rgb(1.0, 1.0, 1.0).into());
