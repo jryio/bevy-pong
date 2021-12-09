@@ -1,16 +1,23 @@
-use crate::{Ball, Collidable, Velocity, WallSide};
+use crate::{Ball, Collidable, Player, Velocity, WallSide};
 use bevy::{prelude::*, sprite};
 
 #[allow(clippy::type_complexity)]
 pub fn collision_system(
     mut commands: Commands,
     mut ball_query: Query<(Entity, &Transform, &Sprite, &mut Velocity, &Ball)>,
-    collidables_query: Query<(&Collidable, Option<&WallSide>, &Transform, &Sprite)>,
+    collidables_query: Query<(
+        &Collidable,
+        Option<&WallSide>,
+        &Transform,
+        &Sprite,
+        Option<&Player>,
+    )>,
 ) {
     if let Ok((ball_entity, ball_transform, ball_sprite, mut ball_velocity, _)) =
         ball_query.single_mut()
     {
-        for (collide_type, wallside, collide_transform, collide_sprite) in collidables_query.iter()
+        for (collide_type, wallside, collide_transform, collide_sprite, player) in
+            collidables_query.iter()
         {
             let ball_pos = ball_transform.translation;
             let ball_size = ball_sprite.size;
@@ -19,18 +26,20 @@ pub fn collision_system(
             if let Some(collision) =
                 sprite::collide_aabb::collide(ball_pos, ball_size, collide_pos, collide_size)
             {
-                match (collide_type, collision, wallside) {
-                    (Collidable::Reflect, _, _) => {
+                match (collide_type, collision, wallside, player) {
+                    (Collidable::Reflect, _, _, Some(_player)) => {
                         ball_velocity.0.x *= -1.0;
+                    }
+                    (Collidable::Reflect, _, _, None) => {
                         ball_velocity.0.y *= -1.0;
                     }
-                    (Collidable::End, _, Some(WallSide::Left)) => {
+                    (Collidable::End, _, Some(WallSide::Left), _) => {
                         commands.entity(ball_entity).insert(WallSide::Left);
                     }
-                    (Collidable::End, _, Some(WallSide::Right)) => {
+                    (Collidable::End, _, Some(WallSide::Right), _) => {
                         commands.entity(ball_entity).insert(WallSide::Left);
                     }
-                    (_, _, None) => (),
+                    (_, _, None, _) => (),
                 }
             }
         }
