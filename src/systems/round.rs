@@ -52,10 +52,6 @@ pub fn round_system(
 
         let ball_new_pos = {
             let start_pos = {
-                // let offset = 0.35 * window.height;
-                // let min_height = 0.0 - offset;
-                // let max_height = 0.0 + offset;
-                // let rand_height: f32 = rand::thread_rng().gen_range(min_height..=max_height);
                 let rand_height = gen_rand_height(&window, 0.4 /*offset*/);
                 Vec2::new(0.0, rand_height)
             };
