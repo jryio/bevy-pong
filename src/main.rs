@@ -3,8 +3,8 @@ mod systems;
 
 use crate::constants::*;
 use crate::systems::{
-    collision::collision_system, input::keyboard_input_system, round::round_system,
-    velocity::velocity_system,
+    collision::collision_system, input::keyboard_input_system, particles::particle_emission_system,
+    particles::particle_update_time_system, round::round_system, velocity::velocity_system,
 };
 use bevy::{prelude::*, render::pass::ClearColor};
 
@@ -31,6 +31,10 @@ pub enum PlayerType {
 #[derive(Debug)]
 pub struct Player {
     player_type: PlayerType,
+}
+pub struct ParticleEmitter;
+pub struct Particle {
+    ttl: Timer,
 }
 
 #[derive(Debug)]
@@ -75,6 +79,8 @@ fn main() {
                 .with_system(collision_system.system().label("collision"))
                 .with_system(velocity_system.system().after("collision")),
         )
+        .add_system(particle_emission_system.system())
+        .add_system(particle_update_time_system.system())
         // .add_system(render_system.system().after("physics"))
         .run();
 }
@@ -125,6 +131,7 @@ fn startup_system(
             transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..Default::default()
         })
+        .insert(ParticleEmitter)
         .insert(Ball)
         .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
         .insert(Velocity(Vec2::new(1.0 * BALL_SPEED, 0.0)));

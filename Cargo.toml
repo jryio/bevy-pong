@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 bevy = "0.5"
 rand = "0.8"
+probability = "0.17.0"

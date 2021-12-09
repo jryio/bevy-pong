@@ -211,6 +211,7 @@ name = "bevy-pong"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "probability",
  "rand",
 ]
 
@@ -2555,6 +2556,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed0cfbc8191465bed66e1718596ee0b0b35d5ee1f41c5df2189d0fe8bde535ba"
 
 [[package]]
+name = "probability"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01935a29f0dd293b7d0254144168084cc8ada317b107635c777fb7d0fb5120e5"
+dependencies = [
+ "random",
+ "special",
+]
+
+[[package]]
 name = "proc-macro-crate"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2630,6 +2641,12 @@ checksum = "d51e9f596de227fda2ea6c84607f5558e196eeaf43c986b724ba4fb8fdf497e7"
 dependencies = [
  "rand_core",
 ]
+
+[[package]]
+name = "random"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97d13a3485349981c90c79112a11222c3e6e75de1d52b87a7525b3bf5361420f"
 
 [[package]]
 name = "range-alloc"
@@ -2888,6 +2905,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ecab6c735a6bb4139c0caafd0cc3635748bbb3acf4550e8138122099251f309"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "special"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24a65e074159b75dcf173a4733ab2188baac24967b5c8ec9ed87ae15fcbc7636"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
