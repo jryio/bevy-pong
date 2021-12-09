@@ -33,6 +33,7 @@ pub struct Player {
     player_type: PlayerType,
 }
 
+#[derive(Debug)]
 pub struct Velocity(Vec2);
 pub struct Ball;
 pub struct LostRound;
@@ -93,7 +94,7 @@ fn startup_system(
         .spawn_bundle(SpriteBundle {
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
             sprite: Sprite::new(Vec2::from(PADDLE_SIZE)),
-            transform: Transform::from_xyz(0.425 * -window.width, 0.0, 0.0),
+            transform: Transform::from_xyz(-PADDLE_X_OFFSET * window.width, 0.0, 0.0),
             ..Default::default()
         })
         .insert(Player {
@@ -107,7 +108,7 @@ fn startup_system(
         .spawn_bundle(SpriteBundle {
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
             sprite: Sprite::new(Vec2::from(PADDLE_SIZE)),
-            transform: Transform::from_xyz(0.425 * window.width, 0.0, 0.0),
+            transform: Transform::from_xyz(PADDLE_X_OFFSET * window.width, 0.0, 0.0),
             ..Default::default()
         })
         .insert(Player {
@@ -126,7 +127,7 @@ fn startup_system(
         })
         .insert(Ball)
         .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
-        .insert(Velocity(Vec2::new(5.0, 0.0)));
+        .insert(Velocity(Vec2::new(1.0 * BALL_SPEED, 0.0)));
 
     // Invisible walls for collision detection
     let wall_material = materials.add(Color::rgb(1.0, 1.0, 1.0).into());

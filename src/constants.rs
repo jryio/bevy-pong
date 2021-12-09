@@ -1,5 +1,7 @@
 pub const BALL_SIZE: [f32; 2] = [5.0, 5.0];
+pub const BALL_SPEED: f32 = 5.0;
 pub const PADDLE_HEIGHT: f32 = 36.0;
+pub const PADDLE_X_OFFSET: f32 = 0.425;
 pub const PADDLE_SIZE: [f32; 2] = [6.0, PADDLE_HEIGHT];
 pub const DASH_WIDTH: f32 = 1.0;
 pub const DASH_HEIGHT: f32 = 8.0;
