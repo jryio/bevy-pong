@@ -20,6 +20,7 @@ pub enum PlayerType {
     Left,
     Right,
 }
+
 #[derive(Debug)]
 pub struct Player {
     pub player_type: PlayerType,
