@@ -50,41 +50,53 @@ pub fn round_system(
                 });
         }
 
-        let ball_new_pos = {
-            let start_pos = {
-                let rand_height = gen_rand_height(&window, 0.4 /*offset*/);
-                Vec2::new(0.0, rand_height)
-            };
-            start_pos
-        };
-
-        let ball_new_velocity = {
-            if let Some(player) = &game.prev_winner {
-                let rand_height = gen_rand_height(&window, 0.25 /*offset*/);
-                let dest_pos = match player {
-                    // Aim towards the Right player if Left won
-                    Player {
-                        player_type: PlayerType::Left,
-                    } => Vec2::new(PADDLE_X_OFFSET * window.height, rand_height),
-                    // Aim towards the right player if right won
-                    Player {
-                        player_type: PlayerType::Right,
-                    } => Vec2::new(-PADDLE_X_OFFSET * window.height, rand_height),
-                };
-                let x = dest_pos[0] - &ball_new_pos[0];
-                let y = dest_pos[1] - &ball_new_pos[1];
-                let new_pos = Vec2::new(x, y).normalize() * Vec2::new(BALL_SPEED, BALL_SPEED);
-                Velocity(new_pos)
-            } else {
-                Velocity(Vec2::new(1.0, 0.0).normalize() * Vec2::new(BALL_SPEED, BALL_SPEED))
-            }
-        };
-
+        let (ball_new_pos, ball_new_velocity) = randomize_ball_direction(&window, &game);
         commands
             .entity(ball_entity)
             .insert(Transform::from_xyz(ball_new_pos.x, ball_new_pos.y, 0.0))
             .insert(ball_new_velocity);
     }
+}
+
+pub fn randomize_ball_direction(window: &WindowDescriptor, game: &Game) -> (Vec2, Velocity) {
+    let ball_new_pos = {
+        let start_pos = {
+            let rand_height = gen_rand_height(&window, 0.4 /*offset*/);
+            Vec2::new(0.0, rand_height)
+        };
+        start_pos
+    };
+
+    let ball_new_velocity = {
+        let player = match &game.prev_winner {
+            Some(p) => p,
+            None => match rand::thread_rng().gen_bool(0.5) {
+                true => &Player {
+                    player_type: PlayerType::Left,
+                },
+                false => &Player {
+                    player_type: PlayerType::Left,
+                },
+            },
+        };
+        let rand_height = gen_rand_height(&window, 0.25 /*offset*/);
+        let dest_pos = match player {
+            // Aim towards the Right player if Left won
+            Player {
+                player_type: PlayerType::Left,
+            } => Vec2::new(PADDLE_X_OFFSET * window.height, rand_height),
+            // Aim towards the right player if right won
+            Player {
+                player_type: PlayerType::Right,
+            } => Vec2::new(-PADDLE_X_OFFSET * window.height, rand_height),
+        };
+        let x = dest_pos[0] - &ball_new_pos[0];
+        let y = dest_pos[1] - &ball_new_pos[1];
+        let new_pos = Vec2::new(x, y).normalize() * Vec2::new(BALL_SPEED, BALL_SPEED);
+        Velocity(new_pos)
+    };
+
+    return (ball_new_pos, ball_new_velocity);
 }
 
 fn gen_rand_height(window: &WindowDescriptor, offset: f32) -> f32 {
