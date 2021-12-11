@@ -8,6 +8,7 @@ pub fn startup_system(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     window: Res<WindowDescriptor>,
+    game: Res<Game>,
 ) {
     // Camera
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
@@ -42,6 +43,7 @@ pub fn startup_system(
         .insert(Collidable::Reflect);
 
     // Ball
+    let initial_ball_velocity = randomize_ball_direction(&window, &game).1;
     commands
         .spawn_bundle(SpriteBundle {
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
@@ -51,7 +53,7 @@ pub fn startup_system(
         })
         .insert(Ball)
         .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
-        .insert(Velocity(Vec2::new(1.0 * BALL_SPEED, 0.0)));
+        .insert(initial_ball_velocity);
 
     // Invisible walls for collision detection
     let wall_material = materials.add(Color::rgb(1.0, 1.0, 1.0).into());
