@@ -1,5 +1,6 @@
 mod components;
 mod constants;
+mod keymaps;
 mod systems;
 
 use crate::components::*;

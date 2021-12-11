@@ -1,40 +1,27 @@
-use bevy::prelude::{Timer, Vec2};
+use bevy::prelude::Vec2;
 
+#[derive(Default)]
 pub struct Game {
     pub left_score: usize,
     pub right_score: usize,
     pub prev_winner: Option<Player>,
 }
-impl Default for Game {
-    fn default() -> Self {
-        Self {
-            left_score: 0,
-            right_score: 0,
-            prev_winner: None,
-        }
-    }
-}
+
 // Player Type
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PlayerType {
     Left,
     Right,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Player {
     pub player_type: PlayerType,
-}
-
-pub struct InputTimer {
-    pub timer: Timer,
 }
 
 #[derive(Debug)]
 pub struct Velocity(pub(crate) Vec2);
 pub struct Ball;
-pub struct LostRound;
-
 pub enum Collidable {
     Reflect, // Something that is collidable but reflects the ball
     End,     // Something that is collidable but ends the balls movement
