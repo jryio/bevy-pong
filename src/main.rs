@@ -1,52 +1,19 @@
+mod components;
 mod constants;
+mod keymaps;
 mod systems;
 
+use crate::components::*;
 use crate::constants::*;
 use crate::systems::{
-    collision::collision_system, input::keyboard_input_system, round::round_system,
+    collision::collision_system,
+    input::keyboard_input_system,
+    round::{randomize_ball_direction, round_system},
     velocity::velocity_system,
 };
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy::diagnostic::LogDiagnosticsPlugin;
 use bevy::{prelude::*, render::pass::ClearColor};
-
-pub struct Game {
-    left_score: usize,
-    right_score: usize,
-    prev_winner: Option<Player>,
-}
-impl Default for Game {
-    fn default() -> Self {
-        Self {
-            left_score: 0,
-            right_score: 0,
-            prev_winner: None,
-        }
-    }
-}
-// Player Type
-#[derive(Debug)]
-pub enum PlayerType {
-    Left,
-    Right,
-}
-#[derive(Debug)]
-pub struct Player {
-    player_type: PlayerType,
-}
-
-#[derive(Debug)]
-pub struct Velocity(Vec2);
-pub struct Ball;
-pub struct LostRound;
-
-pub enum Collidable {
-    Reflect, // Something that is collidable but reflects the ball
-    End,     // Something that is collidable but ends the balls movement
-}
-#[derive(Debug)]
-pub enum WallSide {
-    Left,
-    Right,
-}
 
 fn main() {
     App::build()
@@ -62,6 +29,8 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins)
+        .add_plugin(LogDiagnosticsPlugin::default())
+        .add_plugin(FrameTimeDiagnosticsPlugin::default())
         .add_startup_system(startup_system.system())
         .add_system(round_system.system())
         .add_system_set(
@@ -73,7 +42,12 @@ fn main() {
             SystemSet::new()
                 .label("physics")
                 .with_system(collision_system.system().label("collision"))
-                .with_system(velocity_system.system().after("collision")),
+                .with_system(
+                    velocity_system
+                        .system()
+                        .label("velocity")
+                        .after("collision"),
+                ),
         )
         // .add_system(render_system.system().after("physics"))
         .run();
@@ -84,6 +58,7 @@ fn startup_system(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     window: Res<WindowDescriptor>,
+    game: Res<Game>,
 ) {
     // Camera
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
@@ -118,6 +93,7 @@ fn startup_system(
         .insert(Collidable::Reflect);
 
     // Ball
+    let initial_ball_velocity = randomize_ball_direction(&window, &game).1;
     commands
         .spawn_bundle(SpriteBundle {
             material: materials.add(Color::rgb(1.0, 1.0, 1.0).into()),
@@ -127,7 +103,7 @@ fn startup_system(
         })
         .insert(Ball)
         .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
-        .insert(Velocity(Vec2::new(1.0 * BALL_SPEED, 0.0)));
+        .insert(initial_ball_velocity);
 
     // Invisible walls for collision detection
     let wall_material = materials.add(Color::rgb(1.0, 1.0, 1.0).into());
