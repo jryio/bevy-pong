@@ -1,4 +1,4 @@
-use bevy::prelude::Vec2;
+use bevy::prelude::{Vec2, Timer};
 
 #[derive(Default)]
 pub struct Game {
@@ -30,4 +30,9 @@ pub enum Collidable {
 pub enum WallSide {
     Left,
     Right,
+}
+
+pub struct ParticleEmitter;
+pub struct Particle {
+    pub ttl: Timer,
 }

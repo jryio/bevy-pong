@@ -6,14 +6,14 @@ mod systems;
 use crate::components::*;
 use crate::constants::*;
 use crate::systems::{
-    collision::collision_system,
-    input::keyboard_input_system,
+    collision::collision_system, input::keyboard_input_system, particles::particle_emission_system,
+    particles::particle_update_time_system, velocity::velocity_system,
     round::{randomize_ball_direction, round_system},
-    velocity::velocity_system,
 };
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::diagnostic::LogDiagnosticsPlugin;
 use bevy::{prelude::*, render::pass::ClearColor};
+
 
 fn main() {
     App::build()
@@ -49,6 +49,8 @@ fn main() {
                         .after("collision"),
                 ),
         )
+        .add_system(particle_emission_system.system())
+        .add_system(particle_update_time_system.system())
         // .add_system(render_system.system().after("physics"))
         .run();
 }
@@ -101,6 +103,7 @@ fn startup_system(
             transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..Default::default()
         })
+        .insert(ParticleEmitter)
         .insert(Ball)
         .insert(Size::new(BALL_SIZE[0], BALL_SIZE[1]))
         .insert(initial_ball_velocity);
