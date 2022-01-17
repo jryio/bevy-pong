@@ -26,8 +26,8 @@ pub fn particle_emission_system(
                 })
                 .insert(transform.clone())
                 .insert(Velocity(Vec2::new(
-                    velocity.0.x + samples[0] as f32,
-                    velocity.0.y + samples[1] as f32,
+                    velocity.0.x / 2.0 + samples[0] as f32,
+                    velocity.0.y / 2.0 + samples[1] as f32,
                 )))
                 .insert(Particle {
                     ttl: Timer::new(Duration::from_secs_f64(0.5), false),
