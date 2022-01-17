@@ -5,11 +5,12 @@ use probability::prelude::*;
 use rand::distributions::{Bernoulli, Distribution};
 use std::time::Duration;
 
+const PARTICLE_TTL: f32 = 0.5; // seconds
+
 /// emit new particles from entites with the `ParticleEmitter` component
 pub fn particle_emission_system(
     mut commands: Commands,
     query: Query<(&ParticleEmitter, &Transform, &Sprite, &Velocity)>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for (_particle_emmiter, transform, sprite, velocity) in query.iter() {
         let d = Bernoulli::new(0.3).unwrap();
@@ -20,17 +21,16 @@ pub fn particle_emission_system(
             let samples = sampler.take(2).collect::<Vec<f64>>();
             commands
                 .spawn_bundle(SpriteBundle {
-                    material: materials.add(Color::rgba(1.0, 1.0, 1.0, 1.0).into()),
                     sprite: sprite.clone(),
+                    transform: transform.clone(),
                     ..Default::default()
                 })
-                .insert(transform.clone())
                 .insert(Velocity(Vec2::new(
                     velocity.0.x / 2.0 + samples[0] as f32,
                     velocity.0.y / 2.0 + samples[1] as f32,
                 )))
                 .insert(Particle {
-                    ttl: Timer::new(Duration::from_secs_f64(0.5), false),
+                    ttl: Timer::new(Duration::from_secs_f32(PARTICLE_TTL), false),
                 });
         }
     }
@@ -40,12 +40,11 @@ pub fn particle_emission_system(
 pub fn particle_update_time_system(
     mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<(Entity, &mut Particle, &Handle<ColorMaterial>)>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut query: Query<(Entity, &mut Particle, &mut Sprite)>,
 ) {
-    for (entity, mut particle, handle) in query.iter_mut() {
-        let color = &mut materials.get_mut(handle).unwrap().color;
-        color.set_a(1. - particle.ttl.elapsed().as_secs_f32() / 0.5);
+    
+    for (entity, mut particle, mut sprite) in query.iter_mut() {
+        sprite.color.set_a(1. - particle.ttl.elapsed().as_secs_f32() / PARTICLE_TTL);
         if particle.ttl.tick(time.delta()).just_finished() {
             commands.entity(entity).despawn();
         }
