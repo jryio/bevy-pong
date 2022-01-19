@@ -6,15 +6,18 @@ mod systems;
 use crate::components::*;
 use crate::constants::*;
 use crate::systems::{
-    collision::collision_system, input::keyboard_input_system, particles::particle_emission_system,
-    particles::particle_update_time_system, velocity::velocity_system,
+    collision::collision_system,
+    input::keyboard_input_system,
+    particles::particle_emission_system,
+    particles::particle_update_time_system,
     round::{randomize_ball_direction, round_system},
+    velocity::velocity_system,
 };
+use bevy::core_pipeline::ClearColor;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::diagnostic::LogDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy::core_pipeline::ClearColor;
-
 
 fn main() {
     App::new()
