@@ -53,6 +53,7 @@ pub fn particle_update_time_system(
             blue: HOT.2 * progress + COLD.2 * (1.0 - progress),
             alpha: 1.0 - progress,
         };
+
         if particle.ttl.tick(time.delta()).just_finished() {
             commands.entity(entity).despawn();
         }
