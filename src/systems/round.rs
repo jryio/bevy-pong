@@ -13,7 +13,7 @@ pub fn round_system(
     mut ball_query: Query<(Entity, &WallSide), With<Ball>>,
     player_query: Query<(Entity, &Player), With<Player>>,
 ) {
-    if let Ok((ball_entity, wall_side_collision)) = ball_query.single_mut() {
+    if let Ok((ball_entity, wall_side_collision)) = ball_query.get_single_mut() {
         // Increment score
         match wall_side_collision {
             WallSide::Left => {

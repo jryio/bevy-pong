@@ -14,15 +14,15 @@ pub fn collision_system(
     )>,
 ) {
     if let Ok((ball_entity, ball_transform, ball_sprite, mut ball_velocity, _)) =
-        ball_query.single_mut()
+        ball_query.get_single_mut()
     {
         for (collide_type, wallside, collide_transform, collide_sprite, player) in
             collidables_query.iter()
         {
             let ball_pos = ball_transform.translation;
-            let ball_size = ball_sprite.size;
+            let ball_size = ball_sprite.custom_size.unwrap();
             let collide_pos = collide_transform.translation;
-            let collide_size = collide_sprite.size;
+            let collide_size = collide_sprite.custom_size.unwrap();
             if let Some(collision) =
                 sprite::collide_aabb::collide(ball_pos, ball_size, collide_pos, collide_size)
             {
