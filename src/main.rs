@@ -6,15 +6,17 @@ mod systems;
 use crate::components::*;
 use crate::constants::*;
 use crate::systems::{
-    collision::collision_system, input::keyboard_input_system, particles::particle_emission_system,
-    particles::particle_update_time_system, velocity::velocity_system,
+    collision::collision_system,
+    input::keyboard_input_system,
+    particles::particle_emission_system,
+    particles::particle_update_time_system,
     round::{randomize_ball_direction, round_system},
+    velocity::velocity_system,
 };
+use bevy::core_pipeline::ClearColor;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::diagnostic::LogDiagnosticsPlugin;
 use bevy::prelude::*;
-use bevy::core_pipeline::ClearColor;
-
 
 fn main() {
     App::new()
@@ -43,11 +45,7 @@ fn main() {
             SystemSet::new()
                 .label("physics")
                 .with_system(collision_system.label("collision"))
-                .with_system(
-                    velocity_system
-                        .label("velocity")
-                        .after("collision"),
-                ),
+                .with_system(velocity_system.label("velocity").after("collision")),
         )
         .add_system(particle_emission_system)
         .add_system(particle_update_time_system)
@@ -56,11 +54,7 @@ fn main() {
 }
 
 // The origin (0,0) of bevy's coordinate system is in the center of the screen
-fn startup_system(
-    mut commands: Commands,
-    window: Res<WindowDescriptor>,
-    game: Res<Game>,
-) {
+fn startup_system(mut commands: Commands, window: Res<WindowDescriptor>, game: Res<Game>) {
     // Camera
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());

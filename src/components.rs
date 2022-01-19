@@ -1,4 +1,4 @@
-use bevy::prelude::{Vec2, Timer, Component};
+use bevy::prelude::{Component, Timer, Vec2};
 
 #[derive(Default, Component)]
 pub struct Game {
