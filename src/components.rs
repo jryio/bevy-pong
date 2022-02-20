@@ -37,7 +37,9 @@ pub enum WallSide {
 }
 
 #[derive(Debug, Component)]
-pub struct ParticleEmitter;
+pub struct ParticleEmitter {
+    pub ttl: Timer,
+}
 
 #[derive(Debug, Component)]
 pub struct Particle {

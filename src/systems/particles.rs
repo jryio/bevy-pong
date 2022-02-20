@@ -12,28 +12,32 @@ const HOT: (f32, f32, f32) = (0.0 / 255.0, 0.0 / 255.0, 255.0 / 255.0);
 /// emit new particles from entites with the `ParticleEmitter` component
 pub fn particle_emission_system(
     mut commands: Commands,
-    query: Query<(&ParticleEmitter, &Transform, &Sprite, &Velocity)>,
+    time: Res<Time>,
+    mut query: Query<(&mut ParticleEmitter, &Transform, &Sprite, &Velocity)>,
 ) {
-    for (_particle_emmiter, transform, sprite, velocity) in query.iter() {
-        let d = Bernoulli::new(0.8).unwrap();
-        if d.sample(&mut rand::thread_rng()) {
-            let mut source = source::default();
-            let random_direction_dist = Gaussian::new(0.0, 1.0);
-            let sampler = Independent(&random_direction_dist, &mut source);
-            let samples = sampler.take(2).collect::<Vec<f64>>();
-            commands
-                .spawn_bundle(SpriteBundle {
-                    sprite: sprite.clone(),
-                    transform: transform.clone(),
-                    ..Default::default()
-                })
-                .insert(Velocity(Vec2::new(
-                    velocity.0.x / 1.3 + samples[0] as f32,
-                    velocity.0.y / 1.3 + samples[1] as f32,
-                )))
-                .insert(Particle {
-                    ttl: Timer::new(Duration::from_secs_f32(PARTICLE_TTL), false),
-                });
+    for (mut particle_emmiter, transform, sprite, velocity) in query.iter_mut() {
+        if particle_emmiter.ttl.tick(time.delta()).percent_left() > 0.0 {
+            let d = Bernoulli::new(particle_emmiter.ttl.tick(time.delta()).percent_left() as f64)
+                .unwrap();
+            if d.sample(&mut rand::thread_rng()) {
+                let mut source = source::default();
+                let random_direction_dist = Gaussian::new(0.0, 1.0);
+                let sampler = Independent(&random_direction_dist, &mut source);
+                let samples = sampler.take(2).collect::<Vec<f64>>();
+                commands
+                    .spawn_bundle(SpriteBundle {
+                        sprite: sprite.clone(),
+                        transform: transform.clone(),
+                        ..Default::default()
+                    })
+                    .insert(Velocity(Vec2::new(
+                        velocity.0.x / 2.5 + samples[0] as f32,
+                        velocity.0.y / 2.5 + samples[1] as f32,
+                    )))
+                    .insert(Particle {
+                        ttl: Timer::new(Duration::from_secs_f32(PARTICLE_TTL), false),
+                    });
+            }
         }
     }
 }
