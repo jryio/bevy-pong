@@ -37,7 +37,7 @@ pub fn collision_system(
                         commands.entity(ball_entity).insert(WallSide::Left);
                     }
                     (Collidable::End, _, Some(WallSide::Right), _) => {
-                        commands.entity(ball_entity).insert(WallSide::Left);
+                        commands.entity(ball_entity).insert(WallSide::Right);
                     }
                     (_, _, None, _) => (),
                 }
