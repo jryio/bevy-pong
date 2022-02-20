@@ -39,11 +39,9 @@ pub fn collision_system(
                     }
                     (Collidable::End, _, Some(WallSide::Left), _) => {
                         commands.entity(ball_entity).insert(WallSide::Left);
-                        particle_emitter.ttl.reset();
                     }
                     (Collidable::End, _, Some(WallSide::Right), _) => {
                         commands.entity(ball_entity).insert(WallSide::Left);
-                        particle_emitter.ttl.reset();
                     }
                     (_, _, None, _) => (),
                 }
