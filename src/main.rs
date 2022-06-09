@@ -17,7 +17,7 @@ use bevy::core_pipeline::ClearColor;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::diagnostic::LogDiagnosticsPlugin;
 use bevy::prelude::*;
-use bevy::core_pipeline::ClearColor;
+use std::time::Duration;
 
 fn main() {
     App::new()
@@ -46,11 +46,7 @@ fn main() {
             SystemSet::new()
                 .label("physics")
                 .with_system(collision_system.label("collision"))
-                .with_system(
-                    velocity_system
-                        .label("velocity")
-                        .after("collision"),
-                ),
+                .with_system(velocity_system.label("velocity").after("collision")),
         )
         .add_system(particle_emission_system)
         .add_system(particle_update_time_system)
@@ -59,11 +55,7 @@ fn main() {
 }
 
 // The origin (0,0) of bevy's coordinate system is in the center of the screen
-fn startup_system(
-    mut commands: Commands,
-    window: Res<WindowDescriptor>,
-    game: Res<Game>,
-) {
+fn startup_system(mut commands: Commands, window: Res<WindowDescriptor>, game: Res<Game>) {
     // Camera
     commands.spawn_bundle(OrthographicCameraBundle::new_2d());
     commands.spawn_bundle(UiCameraBundle::default());
@@ -102,6 +94,10 @@ fn startup_system(
 
     // Ball
     let initial_ball_velocity = randomize_ball_direction(&window, &game).1;
+
+    let mut timer = Timer::new(Duration::from_secs_f32(PARTICLE_EMISSION_LIFETIME), false);
+    timer.tick(Duration::from_secs_f32(PARTICLE_EMISSION_LIFETIME));
+
     commands
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
@@ -112,7 +108,7 @@ fn startup_system(
             transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..Default::default()
         })
-        .insert(ParticleEmitter)
+        .insert(ParticleEmitter { ttl: timer })
         .insert(Ball)
         .insert(initial_ball_velocity);
 
